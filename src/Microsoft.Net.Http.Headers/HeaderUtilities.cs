@@ -244,38 +244,38 @@ namespace Microsoft.Net.Http.Headers
         }
 
         /// <summary>
-        /// Check if a target header value exists among the set of given header values.
+        /// Check if a target directive exists among the set of given cache control directives.
         /// </summary>
-        /// <param name="headerValues">
-        /// The <see cref="StringValues"/> containing the set of header values to search.
+        /// <param name="cacheControlDirectives">
+        /// The <see cref="StringValues"/> containing the set of cache control directives.
         /// </param>
-        /// <param name="targetValue">
-        /// The target header value to look for.
+        /// <param name="targetDirectives">
+        /// The target cache control directives to look for.
         /// </param>
         /// <returns>
-        /// <code>true</code> if <paramref name="targetValue"/> is contained in <paramref name="headerValues"/>;
+        /// <code>true</code> if <paramref name="targetDirectives"/> is contained in <paramref name="cacheControlDirectives"/>;
         /// otherwise, <code>false</code>.
         /// </returns>
-        public static bool Contains(StringValues headerValues, string targetValue)
+        public static bool ContainsCacheDirective(StringValues cacheControlDirectives, string targetDirectives)
         {
-            if (StringValues.IsNullOrEmpty(headerValues) || string.IsNullOrEmpty(targetValue))
+            if (StringValues.IsNullOrEmpty(cacheControlDirectives) || string.IsNullOrEmpty(targetDirectives))
             {
                 return false;
             }
 
 
-            for (var i = 0; i < headerValues.Count; i++)
+            for (var i = 0; i < cacheControlDirectives.Count; i++)
             {
                 var current = 0;
 
                 // Trim leading white space
-                current += HttpRuleParser.GetWhitespaceLength(headerValues[i], current);
+                current += HttpRuleParser.GetWhitespaceLength(cacheControlDirectives[i], current);
 
-                while (current < headerValues[i].Length)
+                while (current < cacheControlDirectives[i].Length)
                 {
-                    var tokenLength = HttpRuleParser.GetTokenLength(headerValues[i], current);
-                    if (tokenLength == targetValue.Length
-                        && string.Compare(headerValues[i], current, targetValue, 0, tokenLength, StringComparison.OrdinalIgnoreCase) == 0)
+                    var tokenLength = HttpRuleParser.GetTokenLength(cacheControlDirectives[i], current);
+                    if (tokenLength == targetDirectives.Length
+                        && string.Compare(cacheControlDirectives[i], current, targetDirectives, 0, tokenLength, StringComparison.OrdinalIgnoreCase) == 0)
                     {
                         // Token matches target value
                         return true;
@@ -284,21 +284,21 @@ namespace Microsoft.Net.Http.Headers
                     {
                         // Skip until the next potential name
                         current += tokenLength;
-                        current += HttpRuleParser.GetWhitespaceLength(headerValues[i], current);
+                        current += HttpRuleParser.GetWhitespaceLength(cacheControlDirectives[i], current);
 
                         // Skip the value if present
-                        if (current < headerValues[i].Length && headerValues[i][current] == '=')
+                        if (current < cacheControlDirectives[i].Length && cacheControlDirectives[i][current] == '=')
                         {
                             current++; // skip '='
-                            current += NameValueHeaderValue.GetValueLength(headerValues[i], current);
-                            current += HttpRuleParser.GetWhitespaceLength(headerValues[i], current);
+                            current += NameValueHeaderValue.GetValueLength(cacheControlDirectives[i], current);
+                            current += HttpRuleParser.GetWhitespaceLength(cacheControlDirectives[i], current);
                         }
 
                         // Skip the delimiter
-                        if (current < headerValues[i].Length && headerValues[i][current] == ',')
+                        if (current < cacheControlDirectives[i].Length && cacheControlDirectives[i][current] == ',')
                         {
                             current++; // skip ','
-                            current += HttpRuleParser.GetWhitespaceLength(headerValues[i], current);
+                            current += HttpRuleParser.GetWhitespaceLength(cacheControlDirectives[i], current);
                         }
                     }
                 }

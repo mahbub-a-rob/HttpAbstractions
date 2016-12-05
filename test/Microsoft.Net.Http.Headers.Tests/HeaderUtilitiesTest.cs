@@ -101,9 +101,9 @@ namespace Microsoft.Net.Http.Headers
         [InlineData("header1", "header", false)]
         [InlineData("h=header", "header", false)]
         [InlineData("header1, header2=80", "header", false)]
-        public void Contains_MatchesExactValue(string headerValues, string targetValue, bool contains)
+        public void ContainsCacheDirective_MatchesExactValue(string headerValues, string targetValue, bool contains)
         {
-            Assert.Equal(contains, HeaderUtilities.Contains(new StringValues(headerValues), targetValue));
+            Assert.Equal(contains, HeaderUtilities.ContainsCacheDirective(new StringValues(headerValues), targetValue));
         }
 
         [Theory]
