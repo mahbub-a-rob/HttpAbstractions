@@ -52,10 +52,10 @@ namespace Microsoft.Net.Http.Headers
         [InlineData("header1   =45, header2=80", "header1", 45)]
         [InlineData("header1=   89   , header2=22", "header1", 89)]
         [InlineData("header1=   89   , header2= 42", "header2", 42)]
-        public void TryParseTimeSpan_Succeeds(string headerValues, string targetValue, int expectedValue)
+        public void TryParseSeconds_Succeeds(string headerValues, string targetValue, int expectedValue)
         {
             TimeSpan? value;
-            Assert.True(HeaderUtilities.TryParseTimeSpan(new StringValues(headerValues), targetValue, out value));
+            Assert.True(HeaderUtilities.TryParseSeconds(new StringValues(headerValues), targetValue, out value));
             Assert.Equal(TimeSpan.FromSeconds(expectedValue), value);
         }
 
@@ -66,10 +66,44 @@ namespace Microsoft.Net.Http.Headers
         [InlineData("h=10", "header")]
         [InlineData("", "")]
         [InlineData(null, null)]
-        public void TryParseTimeSpan_Fails(string headerValues, string targetValue)
+        public void TryParseSeconds_Fails(string headerValues, string targetValue)
         {
             TimeSpan? value;
-            Assert.False(HeaderUtilities.TryParseTimeSpan(new StringValues(headerValues), targetValue, out value));
+            Assert.False(HeaderUtilities.TryParseSeconds(new StringValues(headerValues), targetValue, out value));
+        }
+
+        [Theory]
+        [InlineData("h", "h", true)]
+        [InlineData("h=", "h", true)]
+        [InlineData("h=1", "h", true)]
+        [InlineData("H", "h", true)]
+        [InlineData("H=", "h", true)]
+        [InlineData("H=1", "h", true)]
+        [InlineData("h", "H", true)]
+        [InlineData("h=", "H", true)]
+        [InlineData("h=1", "H", true)]
+        [InlineData("header1, header=10", "header1", true)]
+        [InlineData("header1=, header=10", "header1", true)]
+        [InlineData("header1=3, header=10", "header1", true)]
+        [InlineData("header1   , header=80", "header1", true)]
+        [InlineData("header1   =45, header=80", "header1", true)]
+        [InlineData("header1=   89   , header=22", "header1", true)]
+        [InlineData("header1=3, header", "header", true)]
+        [InlineData("header1=3, header=", "header", true)]
+        [InlineData("header1=3, header=10", "header", true)]
+        [InlineData("header1=   89   , header= 42", "header", true)]
+        [InlineData("header1=   89   , header = 42", "header", true)]
+        [InlineData(null, null, false)]
+        [InlineData(null, "", false)]
+        [InlineData("", null, false)]
+        [InlineData("", "", false)]
+        [InlineData("h=10", "header", false)]
+        [InlineData("header1", "header", false)]
+        [InlineData("h=header", "header", false)]
+        [InlineData("header1, header2=80", "header", false)]
+        public void Contains_MatchesExactValue(string headerValues, string targetValue, bool contains)
+        {
+            Assert.Equal(contains, HeaderUtilities.Contains(new StringValues(headerValues), targetValue));
         }
 
         [Theory]

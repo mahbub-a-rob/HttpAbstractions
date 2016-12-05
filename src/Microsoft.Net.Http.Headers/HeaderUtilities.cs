@@ -220,7 +220,7 @@ namespace Microsoft.Net.Http.Headers
         /// <code>false</code>.
         /// </returns>
         // e.g. { "headerValue=10, targetHeaderValue=30" }
-        public static bool TryParseTimeSpan(StringValues headerValues, string targetValue, out TimeSpan? value)
+        public static bool TryParseSeconds(StringValues headerValues, string targetValue, out TimeSpan? value)
         {
             for (var i = 0; i < headerValues.Count; i++)
             {
@@ -258,12 +258,49 @@ namespace Microsoft.Net.Http.Headers
         /// </returns>
         public static bool Contains(StringValues headerValues, string targetValue)
         {
+            if (StringValues.IsNullOrEmpty(headerValues) || string.IsNullOrEmpty(targetValue))
+            {
+                return false;
+            }
+
+
             for (var i = 0; i < headerValues.Count; i++)
             {
-                var index = headerValues[i].IndexOf(targetValue, StringComparison.OrdinalIgnoreCase);
-                if (index != -1)
+                var current = 0;
+
+                // Trim leading white space
+                current += HttpRuleParser.GetWhitespaceLength(headerValues[i], current);
+
+                while (current < headerValues[i].Length)
                 {
-                    return true;
+                    var tokenLength = HttpRuleParser.GetTokenLength(headerValues[i], current);
+                    if (tokenLength == targetValue.Length
+                        && string.Compare(headerValues[i], current, targetValue, 0, tokenLength, StringComparison.OrdinalIgnoreCase) == 0)
+                    {
+                        // Token matches target value
+                        return true;
+                    }
+                    else
+                    {
+                        // Skip until the next potential name
+                        current += tokenLength;
+                        current += HttpRuleParser.GetWhitespaceLength(headerValues[i], current);
+
+                        // Skip the value if present
+                        if (current < headerValues[i].Length && headerValues[i][current] == '=')
+                        {
+                            current++; // skip '='
+                            current += NameValueHeaderValue.GetValueLength(headerValues[i], current);
+                            current += HttpRuleParser.GetWhitespaceLength(headerValues[i], current);
+                        }
+
+                        // Skip the delimiter
+                        if (current < headerValues[i].Length && headerValues[i][current] == ',')
+                        {
+                            current++; // skip ','
+                            current += HttpRuleParser.GetWhitespaceLength(headerValues[i], current);
+                        }
+                    }
                 }
             }
 
