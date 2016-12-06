@@ -432,7 +432,7 @@ namespace Microsoft.AspNetCore.Http.Internal
 
             if (value.HasValue)
             {
-                headers[HeaderNames.ContentLength] = value.Value.ToString(CultureInfo.InvariantCulture);
+                headers[HeaderNames.ContentLength] = HeaderUtilities.FormatInt64(value.Value);
             }
             else
             {

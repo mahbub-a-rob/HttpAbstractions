@@ -2,6 +2,7 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using System.Globalization;
 using Microsoft.Extensions.Primitives;
 using Xunit;
 
@@ -73,6 +74,19 @@ namespace Microsoft.Net.Http.Headers
         }
 
         [Theory]
+        [InlineData(0)]
+        [InlineData(1)]
+        [InlineData(-1)]
+        [InlineData(1234567890)]
+        [InlineData(-1234567890)]
+        [InlineData(long.MaxValue)]
+        [InlineData(long.MinValue)]
+        public void FormatInt64_MatchesToString(long value)
+        {
+            Assert.Equal(value.ToString(CultureInfo.InvariantCulture), HeaderUtilities.FormatInt64(value));
+        }
+
+        [Theory]
         [InlineData("h", "h", true)]
         [InlineData("h=", "h", true)]
         [InlineData("h=1", "h", true)]
@@ -82,25 +96,26 @@ namespace Microsoft.Net.Http.Headers
         [InlineData("h", "H", true)]
         [InlineData("h=", "H", true)]
         [InlineData("h=1", "H", true)]
-        [InlineData("header1, header=10", "header1", true)]
-        [InlineData("header1=, header=10", "header1", true)]
-        [InlineData("header1=3, header=10", "header1", true)]
-        [InlineData("header1   , header=80", "header1", true)]
-        [InlineData("header1   =45, header=80", "header1", true)]
-        [InlineData("header1=   89   , header=22", "header1", true)]
-        [InlineData("header1=3, header", "header", true)]
-        [InlineData("header1=3, header=", "header", true)]
-        [InlineData("header1=3, header=10", "header", true)]
-        [InlineData("header1=   89   , header= 42", "header", true)]
-        [InlineData("header1=   89   , header = 42", "header", true)]
+        [InlineData("directive1, directive=10", "directive1", true)]
+        [InlineData("directive1=, directive=10", "directive1", true)]
+        [InlineData("directive1=3, directive=10", "directive1", true)]
+        [InlineData("directive1   , directive=80", "directive1", true)]
+        [InlineData("   directive1, directive=80", "directive1", true)]
+        [InlineData("directive1   =45, directive=80", "directive1", true)]
+        [InlineData("directive1=   89   , directive=22", "directive1", true)]
+        [InlineData("directive1=3, directive", "directive", true)]
+        [InlineData("directive1=3, directive=", "directive", true)]
+        [InlineData("directive1=3, directive=10", "directive", true)]
+        [InlineData("directive1=   89   , directive= 42", "directive", true)]
+        [InlineData("directive1=   89   , directive = 42", "directive", true)]
         [InlineData(null, null, false)]
         [InlineData(null, "", false)]
         [InlineData("", null, false)]
         [InlineData("", "", false)]
-        [InlineData("h=10", "header", false)]
-        [InlineData("header1", "header", false)]
-        [InlineData("h=header", "header", false)]
-        [InlineData("header1, header2=80", "header", false)]
+        [InlineData("h=10", "directive", false)]
+        [InlineData("directive1", "directive", false)]
+        [InlineData("h=directive", "directive", false)]
+        [InlineData("directive1, directive2=80", "directive", false)]
         public void ContainsCacheDirective_MatchesExactValue(string headerValues, string targetValue, bool contains)
         {
             Assert.Equal(contains, HeaderUtilities.ContainsCacheDirective(new StringValues(headerValues), targetValue));

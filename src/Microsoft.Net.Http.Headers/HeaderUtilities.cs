@@ -11,6 +11,7 @@ namespace Microsoft.Net.Http.Headers
 {
     public static class HeaderUtilities
     {
+        private static readonly int _int64MaxStringLength = 20;
         private const string QualityName = "q";
         internal const string BytesUnit = "bytes";
 
@@ -486,9 +487,27 @@ namespace Microsoft.Net.Http.Headers
             }
         }
 
-        public static string FormatInt64(long value)
+        public unsafe static string FormatInt64(long value)
         {
-            return value.ToString(CultureInfo.InvariantCulture);
+            var length = 0;
+            var negative = value < 0;
+            char* charBuffer = stackalloc char[_int64MaxStringLength];
+
+            do
+            {
+                length++;
+                charBuffer[_int64MaxStringLength - length] = (char)((int)'0' + Math.Abs((int)(value % 10)));
+                value /= 10;
+            }
+            while (value != 0);
+
+            if (negative)
+            {
+                length++;
+                charBuffer[_int64MaxStringLength - length] = '-';
+            }
+
+            return new string(charBuffer, _int64MaxStringLength - length, length);
         }
 
         public static bool TryParseDate(string input, out DateTimeOffset result)
