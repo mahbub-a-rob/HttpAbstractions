@@ -81,6 +81,7 @@ namespace Microsoft.Net.Http.Headers
         [InlineData(-1234567890)]
         [InlineData(long.MaxValue)]
         [InlineData(long.MinValue)]
+        [InlineData(long.MinValue + 1)]
         public void FormatInt64_MatchesToString(long value)
         {
             Assert.Equal(value.ToString(CultureInfo.InvariantCulture), HeaderUtilities.FormatInt64(value));

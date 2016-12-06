@@ -489,25 +489,36 @@ namespace Microsoft.Net.Http.Headers
 
         public unsafe static string FormatInt64(long value)
         {
-            var length = 0;
-            var negative = value < 0;
+            var position = _int64MaxStringLength;
+            var negative = false;
+
+            if (value < 0)
+            {
+                if (value == long.MinValue)
+                {
+                    return "-9223372036854775808";
+                }
+                negative = true;
+                value = -value;
+            }
+
             char* charBuffer = stackalloc char[_int64MaxStringLength];
 
             do
             {
-                length++;
-                charBuffer[_int64MaxStringLength - length] = (char)((int)'0' + Math.Abs((int)(value % 10)));
-                value /= 10;
+                // Consider using Math.DivRem()
+                var quotient = value / 10;
+                charBuffer[--position] = (char)(0x30 + (value - quotient * 10)); // 0x30 = '0'
+                value = quotient;
             }
             while (value != 0);
 
             if (negative)
             {
-                length++;
-                charBuffer[_int64MaxStringLength - length] = '-';
+                charBuffer[--position] = '-';
             }
 
-            return new string(charBuffer, _int64MaxStringLength - length, length);
+            return new string(charBuffer, position, _int64MaxStringLength - position);
         }
 
         public static bool TryParseDate(string input, out DateTimeOffset result)
